@@ -7,24 +7,44 @@
 
 import Foundation
 
-struct MemoryGame<CardContent> {
+struct MemoryGame<CardContent> where CardContent: Equatable {
     private(set) var cards: Array<Card>
     
-    mutating func choose(_ card: Card) {
-        let chosenIndex = index(of: card)
-        cards[chosenIndex].isFaceUp.toggle()
-        print("card chosen: \(card)")
-        print("\(cards)")
-    }
+    private var indexOFTheOneAndOnlyFaceUpCard: Int?
     
-    func index(of card: Card) -> Int {
-        for index in 0..<cards.count {
-            if cards[index].id == card.id {
-                return index
+    mutating func choose(_ card: Card) {
+//        if let chosenIndex = index(of: card) {
+        if let chosenIndex = cards.firstIndex(where: { $0.id == card.id }),
+           !cards[chosenIndex].isFaceUp,
+           !cards[chosenIndex].isMatched
+        {
+            if let potentialMatchIndex = indexOFTheOneAndOnlyFaceUpCard {
+                if cards[chosenIndex].content == cards[potentialMatchIndex].content {
+                    cards[chosenIndex].isMatched = true
+                    cards[potentialMatchIndex].isMatched = true
+                }else{
+                    for index in cards.indices {
+                        cards[index].isFaceUp = false
+                    }
+                    indexOFTheOneAndOnlyFaceUpCard = chosenIndex
+                }
             }
+            
+            cards[chosenIndex].isFaceUp.toggle()
         }
-        return 0
+        
+        print("\(cards)")
+        
     }
+//    func index(of card: Card) -> Int? {
+//        for index in 0..<cards.count {
+//            if cards[index].id == card.id {
+//                return index
+//            }
+//        }
+//        return nil
+//    }
+// Code above replaced by lines 15 and 16. 
     
 
     init(numberOfPairsOfCards: Int, cardContentFactory: (Int) -> CardContent){
